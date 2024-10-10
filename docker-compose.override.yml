@@ -39,3 +39,19 @@ services:
       - "host.docker.internal:host-gateway"
     restart: always
     env_file: .env
+  web:
+    image: ruralkan/streamlit-airflow-mlflow  
+    networks:
+      - airflow
+    volumes:
+      - ${PWD}/include/mlflow:/data
+      - ${PWD}/include/models:/models
+      - ${PWD}/include/data:/datasets
+
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file: .env
+    restart: always
+    mem_limit: 350m

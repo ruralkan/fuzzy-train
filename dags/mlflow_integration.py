@@ -11,7 +11,7 @@ from airflow.providers.amazon.aws.operators.s3 import S3CreateBucketOperator
 from mlflow_provider.operators.registry import CreateRegisteredModelOperator
 
 import os
-import include.model as model_class
+import include.models.ElasticNet_model as model_class
 
 model = model_class.Model()
 
@@ -27,7 +27,7 @@ MLFLOW_ARTIFACT_BUCKET = model.ml_flow_artifact_bucket
 MLFLOW_CONN_ID = "mlflow_default"
 EXPERIMENT_NAME = model.experiment_name
 MAX_RESULTS_MLFLOW_LIST_EXPERIMENTS = 1000
-
+CLASSIFICATION_TYPE =  model.classification_type
 
 XCOM_BUCKET = "localxcom"
 
@@ -154,10 +154,10 @@ def wine_feature_eng():
 
     create_registered_model = CreateRegisteredModelOperator(
         task_id="create_registered_model",
-        name=EXPERIMENT_NAME+ "_" + "{{ ts }}" ,
+        name=EXPERIMENT_NAME + "_"+ CLASSIFICATION_TYPE ,
         tags=[
             {"key": "model_type", "value": "regression"},
-            {"key": "data", "value": "housing"},
+            {"key": "data", "value": "Wine_quality"},
         ],
     )
 
