@@ -1,19 +1,57 @@
-#Airflow and MLflow Integration Example
+## Wine Quality tool with Airflow, MLflow, Evidently and Streamlit
+## Problem description
 
-## Description
-The approach of this project is facilitates the orchestration and tracking of machine learning workflows through MLflow.
-	-MLflow was used for the experiment tracking and organization.
-	-Airflow for the run orchestration between the stages of MLflow.
-![[pics/Untitled Diagram.drawio.png]]
+Wine quality is an important metric because it could absolutely make or break the amount of money a restaurant, wine shop, or wine manufacturer makes during the year. e Moreover, wine quality will certainly harm the reputation of the restaurant, wine shop, or wine manufacturer as well.
 
+If a restaurant, wine shop, or wine manufacturer is known to be making or selling wines that are of poor, subpar, or average quality, consumers will most likely not want to give their business to that particular restaurant, wine shop, or wine manufacturer and will instead want to take their business to a different shop, manufacturer, or restaurant which in turn will hurt the shop, manufacturer, or restaurant financially.
+
+So from a financial and business standpoint, knowing the expected or predicted wine quality is definitely important to a wine shop, wine manufacturer, or restaurant both in the short term as well as in the long term
+
+
+## Objective
+
+The objective of this project is generate tools that helps with predictions about the wine quality for red wine. We would like centralize monitoring, testing and inference in a web app with a simple UI 
+
+## Project content
+
+### Data Source
+
+[The dataset](https://archive.ics.uci.edu/dataset/186/wine+quality) used describes the amount of various chemicals present in wine and their effect on its quality.
+
+Input variables in the data set consist of metrics from objective tests (e.g. acidity levels, PH values, ABV, etc.), while the target/output variable is a numerical score based on sensory data — median of at least 3 evaluations made by wine experts.
+
+Each expert graded the wine quality between 0 (very bad) and 10 (very excellent). Due to privacy and logistic issues, there is no data about grape types, wine brand, and wine selling price.
+
+Data was obtained from [https://archive.ics.uci.edu/dataset/186/wine+quality](https://archive.ics.uci.edu/dataset/186/wine+quality)
+
+
+### Project Overview
+
+This project  its divided in several parts parts:
+	- [MLflow](https://mlflow.org/) was used for the experiment tracking and organization.
+	- Combine Airflow and MLflow make a complete platform for ML orchestration (MLOx). Airflow orchestrate the different stages on MLflow
+		- Show how you can use the Airflow API launch a orchestrated data pipeline
+	- Use of [Evidently](https://www.evidentlyai.com/) to evaluate, test, and monitor AI-powered systems and data pipelines from experimentation to production.
+	- Use  [fastapi](https://fastapi.tiangolo.com/) to get inference from the model within MLflow register
+	- Demonstrate how you can use [streamlit](https://streamlit.io/) to  show Classification and Data Drift reports, generated with Evidently, access to MLflow experiment information and get inference from the model
+	
+	
+
+![Component Diagram](pics/CF_diagram.png)
+	
+
+#### Airflow DAG
 We found inspiration in this [Astronomer.io tutorial](https://www.astronomer.io/docs/learn/airflow-mlflow)
-The workflow is shown below
-![[pics/workflow.png]]
+The [`mlflow_integration`](https://github.com/ruralkan/fuzzy-train/blob/main/dags/mlflow_integration.py) DAG prepares the MLflow experiment and builds prediction features from the wine quality dataset.
+
+![mlflow_integration DAG](pics/workflow.png)
+
 The flow is integrated by 4 main tasks:
 	-  create_buckets_if_not_exists
 	-  prepare_mlflow_experiment
 	-  train_model
 	-  create_registered_model
+
 We are generated the module named include/model.py that contains the Model Class. This class contains information like:
 
 ```python 
@@ -27,8 +65,7 @@ class Model:
 ```
 With this attributes we can specify the name of experiment, the bucket the artifacts of experiment, the data path and the hyper parameters for the model.
 
-Additionaly we can set the experiment and instrumented with MLflow and/ or evidently.ai
-
+Additionally we can set the experiment and instrumented with MLflow and/ or evidently.ai
 
 ```python
 def run_model(self):
@@ -60,42 +97,78 @@ def run_model(self):
 	mlflow.sklearn.log_model(lr, "wine_regression")
 ```
 
-## How to use this repository
+![Airflow UI](pics/airflow_running.png)
 
-This section explains how to run this repository with Airflow. Note that you will need to copy the contents of the `.env_example` file to a newly created `.env` file. No external connections are necessary to run this repository locally, but you can add your own credentials in the file if you wish to connect to your tools. 
+When mlflow_integration DAG finish, we could have a new experiment and/or run on mlflow UI
 
-### Option 1: Use GitHub Codespaces
+![MLflow UI](pics/mlflow_tracking.png)
 
-Run this Airflow project without installing anything locally.
+**Model Prediction and Scoring Pipeline**
+After we have registered an MLflow model, we can fetch that model using `mlflow.<model_flavor>.load_model()`, or more generally, `load_model()`.
 
-1. Fork this repository.
-2. Create a new GitHub codespaces project on your fork. Make sure it uses at least 4 cores!
-3. After creating the codespaces project the Astro CLI will automatically start up all necessary Airflow components and the local MinIO and MLflow instances. This can take a few minutes. 
-4. Once the Airflow project has started, access the Airflow UI by clicking on the **Ports** tab and opening the forward URL for port 8080. The MLflow instance is accessible at port 5000, the MinIO instance at port 9000.
+``` python
+"""Loading specific version of model"""  
+import mlflow.pyfunc
 
-### Option 2: Use the Astro CLI
+model_name = "<model-of-choice>"  
+stage = 'Staging'  
+model_uri = f"models:/{model_name}/{stage}"model = mlflow.pyfunc.load_model(model_uri=model_uri)  
+model.predict(data)"""Loading specific type of models like sklearn"""  
+mlflow.sklearn.load_model("models:/<model>/<version>")"""Loading Latest Production Version of model"""  
+import mlflow.pyfunc  
+model_name = "<model-of-choice>"  
+stage = 'Production'model_uri = f"models:/{model_name}/{stage}"  
+model = mlflow.pyfunc.load_model(model_uri=model_uri)  
+model.predict(data)
+```
 
-Download the [Astro CLI](https://docs.astronomer.io/astro/cli/install-cli) to run Airflow locally in Docker. `astro` is the only package you will need to install locally.
+#### Serving an MLflow Model from Model Registry
 
-1. Run `git clone https://github.com/astronomer/use-case-mlflow.git` on your computer to create a local clone of this repository.
-2. Install the Astro CLI by following the steps in the [Astro CLI documentation](https://docs.astronomer.io/astro/cli/install-cli). Docker Desktop/Docker Engine is a prerequisite, but you don't need in-depth Docker knowledge to run Airflow with the Astro CLI.
-3. Run `astro dev start` in your cloned repository.
-4. After your Astro project has started. View the Airflow UI at `localhost:8080`, the MLflow UI at `localhost:5000` and the MinIO UI at `localhost:9000`.
+After we have registered an MLflow model, we can serve the model as a service through fast API or streamlit.
+```python
+model_name = "wine_quality"
+
+model_version = 1
+
+model = mlflow.sklearn.load_model(
+
+model_uri=f"models:/{model_name}/{model_version}"
+
+)
+
+y_pred_new = model.predict(X_new)
+```
+Once we have deployed the server, we can pass it some sample data and see the predictions. The following example uses the web interface to inference
+
+![Inference UI](pics/inference.png)
+
+#### Monitoring Datadrift
+We have implement ['evidently.ai'](https://www.evidentlyai.com/) to generate a monitoring data drift during the training and generate the reports. The reports has saved in MLflow registery as artifact and display with streamlit
+
+![Drift_data_monitoring](pics/Drift_data_monitoring.png)
 
 
-#Create a new project or update the model
+## Run the project
 
-All modification related to training model (change of ML algorithm, change of data inputs, etc) can be applied directly on the module model.py located in include folder. 
-Example: Change the values for Alpha and L1-ratio
+To run the example project, first make sure Docker Desktop is running. Then, open your project directory and run:
 
-Changing Alpha and L1-ration on model.py
-![[pics/changing_parameters.png]]
+``` bash
+astro dev start
+```
 
-Run the dag wine_feature_eng
-![[pics/airflow_running.png]]
+or
 
-When the execution is completed, you can go to MLflow UI and check the new run for the experiment
-![[pics/mlflow_tracking.png]]
+``` bash
+docker compose -f docker-compose.override.yml -d up
+```
 
-And verify the model registered
-![[pics/register.png]]
+This commands builds your project and spins up 7 Docker containers on your machine to run it:
+
+- The Airflow webserver, which runs the Airflow UI and can be accessed at `https://localhost:8080/`.
+- The Airflow scheduler, which is responsible for monitoring and triggering tasks.
+- The Airflow triggerer, which is an Airflow component used to run deferrable operators.
+- The Airflow metadata database, which is a Postgres database that runs on port `5432`.
+- A local [MinIO](https://min.io/) instance, which can be accessed at `https://localhost:9000/`.
+- A local [MLflow](https://mlflow.org/) instance, which can be accessed at `https://localhost:5000/`.
+- A local Streamlit app which can be accessed at `https://localhost:8000/`.
+
