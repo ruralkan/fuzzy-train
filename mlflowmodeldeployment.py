@@ -79,6 +79,7 @@ class ModelManager:
 
 if __name__ == "__main__":
     logger.info("Starting Automatic Model Deployment...")
+    logger,info(f"This is MLFLOW_TRACKING_URI {MLFLOW_TRACKING_URI}")
     mlflow.set_tracking_uri(
             uri=MLFLOW_TRACKING_URI,
         )
