@@ -6,7 +6,7 @@ from mlflow.entities.model_registry.model_version import ModelVersion
 from typing import List
 
 
-MLFLOW_TRACKING_URI = 'https://localhost:5000' #os.getenv("MLFLOW_TRACKING_URI")
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
 MLFLOW_EXPERIMENT = "wine_quality" # Defined previously by you
 MLFLOW_MODEL_NAME = "wine_quality"
 
@@ -31,7 +31,6 @@ class ModelManager:
     ) -> str:
         """Search Best Run ID of given experiments"""
         logger.info("Searching best model...")
-        logger.info(f"this is MLFLOW_TRACKING_URI {MLFLOW_TRACKING_URI}")
         runs_ = mlflow.search_runs(experiment_names=experiment_names)
         best_run = runs_.loc[runs_[f"metrics.{metric_name}"].idxmax()]
 
@@ -79,7 +78,6 @@ class ModelManager:
 
 if __name__ == "__main__":
     logger.info("Starting Automatic Model Deployment...")
-    logger.info(f"This is MLFLOW_TRACKING_URI in main {MLFLOW_TRACKING_URI}")
     mlflow.set_tracking_uri(
             uri=MLFLOW_TRACKING_URI,
         )
