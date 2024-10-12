@@ -1,4 +1,5 @@
-## Wine Quality tool with Airflow, MLflow, Evidently and Streamlit
+# Wine Quality tool with Airflow, MLflow, Evidently and Streamlit
+
 ## Problem description
 
 Wine quality is an important metric because it could absolutely make or break the amount of money a restaurant, wine shop, or wine manufacturer makes during the year. e Moreover, wine quality will certainly harm the reputation of the restaurant, wine shop, or wine manufacturer as well.
