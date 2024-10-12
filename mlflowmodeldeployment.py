@@ -6,7 +6,7 @@ from mlflow.entities.model_registry.model_version import ModelVersion
 from typing import List
 
 
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
+MLFLOW_TRACKING_URI = 'http://host.docker.internal:5000' #os.getenv("MLFLOW_TRACKING_URI")
 MLFLOW_EXPERIMENT = "wine_quality" # Defined previously by you
 MLFLOW_MODEL_NAME = "wine_quality"
 
