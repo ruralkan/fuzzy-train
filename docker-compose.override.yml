@@ -8,7 +8,7 @@ services:
       - 9000:9000
       - 9001:9001
     volumes:
-       - ${PWD}/include/minio:/data
+       - include/minio:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"  
     restart: always
@@ -31,7 +31,7 @@ services:
       - airflow
     command: bash -c '(pip install -q boto3) && (mlflow server --host 0.0.0.0 --backend-store-uri sqlite:////data/mlflow_backend.db --default-artifact-root s3://mlflowdata)'
     volumes:
-      - ${PWD}/include/mlflow:/data
+      - include/mlflow:/data
     ports:
       - 5000:5000
     extra_hosts:
@@ -43,9 +43,9 @@ services:
     networks:
       - airflow
     volumes:
-      - ${PWD}/include/mlflow:/data
-      - ${PWD}/include/models:/models
-      - ${PWD}/include/data:/datasets
+      - include/mlflow:/data
+      - include/models:/models
+      - include/data:/datasets
 
     ports:
       - "8000:8000"
