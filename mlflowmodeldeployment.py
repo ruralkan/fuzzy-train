@@ -31,6 +31,7 @@ class ModelManager:
     ) -> str:
         """Search Best Run ID of given experiments"""
         logger.info("Searching best model...")
+        logger.info(f"this is MLFLOW_TRACKING_URI {MLFLOW_TRACKING_URI}")
         runs_ = mlflow.search_runs(experiment_names=experiment_names)
         best_run = runs_.loc[runs_[f"metrics.{metric_name}"].idxmax()]
 
