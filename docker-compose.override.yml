@@ -22,9 +22,6 @@ services:
   triggerer:
     extra_hosts:
       - "host.docker.internal:host-gateway"
-  postgres:
-    extra_hosts:
-      - "host.docker.internal:host-gateway"                
   mlflow:
     image: ghcr.io/mlflow/mlflow
     networks:
